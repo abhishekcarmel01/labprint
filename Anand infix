@@ -1,0 +1,196 @@
+# include <stdio.h>
+# include <string.h>
+#include <ctype.h>
+
+void Stack(char str,int *Top,char array[100],char expression[100],int *j);
+void Associativity(char str,int **Top,char array[100],char expression[100],int **j);
+
+int Precedence(char str)
+{
+    switch(str)
+    {
+        case '(': case ')': return 1;
+        
+        case '+': case '-': return 2;
+        
+        case '*': case '/': case '%': return 3;
+
+        case '^': return 4;
+        
+        default: return 0;
+    }
+}
+
+void Infix_to_Postfix(char str[100],int count,char expression[100])
+{
+    int Temp,Top=-1,j=0;
+    char array[100];
+    for(int i=0;i<count;i++)
+    {
+      Temp=Precedence(str[i]);
+       if(Temp==0)
+       {
+           expression[j]=str[i];
+           j++;
+       }
+       else
+       {
+          Stack(str[i],&Top,array,expression,&j);
+       }
+    }
+    if(Top!=-1)
+    {
+        
+        for(int i=Top;i>=0;i--)
+        {
+            expression[j]=array[i];
+            j=j+1;
+        }
+    }
+    printf("\nThe Postix expression : %s",expression);
+    printf("\n");
+}
+
+void Stack(char str,int *Top,char array[100],char expression[100],int *j)
+{
+    if(*Top==-1)
+    {
+        *Top=*Top+1;
+        array[*Top]=str;
+    }
+    else
+    {
+        if(Precedence(array[*Top])==Precedence(str))
+        {
+            Associativity(str,&Top,array,expression,&j);
+        }
+        else if(str=='(')
+        {
+            *Top=*Top+1;
+            array[*Top]=str;
+        }
+        else if(str==')')
+        {
+            while(array[*Top]!='(')
+            {
+                expression[*j]=array[*Top];
+                *j=*j+1;
+                *Top=*Top-1;
+            }
+            if(array[*Top]=='(')
+            {
+                *Top=*Top-1;
+            }
+        }
+        else if(Precedence(array[*Top])>Precedence(str))
+        {
+            expression[*j]=array[*Top];
+            *j=*j+1;   
+            *Top=*Top-1;
+            if(Precedence(array[*Top])==Precedence(str))
+            {
+                Associativity(str,&Top,array,expression,&j);
+            }
+            else
+            {
+                *Top=*Top+1;
+                array[*Top]=str;
+            }
+        }
+        else
+        {
+            
+            *Top=*Top+1;
+            array[*Top]=str;
+        }
+    }
+}
+
+void Associativity(char str,int **Top,char array[100],char expression[100],int **j)
+{
+    switch(str)
+    {
+        case '+': case '-': 
+                            expression[**j]=array[**Top];
+                            **j=**j+1;   
+                            **Top=**Top-1;
+                            array[**Top];
+                            **Top=**Top+1;
+                            array[**Top]=str;
+                            
+                            break;
+        
+        case '*': case '/': case '%':
+                                        expression[**j]=array[**Top];
+                                        **j=**j+1;   
+                                        **Top=**Top-1;
+                                        array[**Top];
+                                        **Top=**Top+1;
+                                        array[**Top]=str;
+                                        break;
+
+        default: break;
+    }
+}
+
+int Evaluation(char str,int a,int b)
+{
+    switch(str)
+    {
+        case '+': return(b+a);
+                    
+        case '-': return(b-a);
+                    
+        case '*': return(b*a);
+                    
+        case '/': return(b/a);
+                    
+        case '%': return(b%a);
+                    
+        case '^': return(b^a);
+        
+        default: return 0;
+    }
+}
+
+int main()
+{
+    char str[100];
+    char expression[100]={ };
+    printf("Enter the Infix expression :");
+    scanf("%[^\n]s",str);
+    int count=strlen(str);
+    Infix_to_Postfix(str,count,expression);
+    
+    
+    int count1=strlen(expression);
+    int top1=-1,value;
+    int array[count1];
+    for(int i=0;i<count1;i++)
+    {
+        if(!isdigit(expression[i]))
+        {
+            int temp1=Precedence(expression[i]);
+            if(temp1==0)
+            {
+                printf("Enter the value of %c:",expression[i]);
+                scanf("%d",&value);
+                top1=top1+1;
+                array[top1]=value;
+            }
+            else
+            {
+                int a,b,result;
+                a=array[top1];
+                top1=top1-1;
+                b=array[top1];
+                top1=top1-1;
+                result=Evaluation(expression[i],a,b);
+                top1=top1+1;
+                array[top1]=result;
+            }
+        }
+    }
+    printf("\nResult is :%d",array[top1]);
+    return 0;
+}
